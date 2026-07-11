@@ -1,0 +1,59 @@
+{
+    "name": "boone-studios/laravel-api-keys",
+    "description": "Prefixed, hashed API keys with scope-to-permission mapping for multi-tenant Laravel APIs.",
+    "keywords": ["laravel", "api-keys", "authentication", "multi-tenant", "scopes"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Boone Studios, LLC",
+            "email": "hello@boonestudios.org"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "boone-studios/laravel-scoped-roles": "@dev",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^3.0|^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0|^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BooneStudios\\ApiKeys\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BooneStudios\\ApiKeys\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BooneStudios\\ApiKeys\\ApiKeysServiceProvider"
+            ]
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../scoped-roles",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}

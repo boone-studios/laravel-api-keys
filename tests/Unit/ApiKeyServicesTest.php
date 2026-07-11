@@ -31,7 +31,7 @@ beforeEach(function () {
         $table->timestamp('expires_at')->nullable();
         $table->timestamp('revoked_at')->nullable();
         $table->timestamps();
-        $table->index('prefix');
+        $table->unique('prefix');
     });
 
     config([
@@ -101,9 +101,9 @@ class TestScopePermissions implements ResolvesScopePermissions
 test('token formatter generates secrets that match the configured pattern', function () {
     $token = TokenFormatter::generate('live');
 
-    expect($token['secret'])->toMatch('/^app_live_[a-z0-9]{32}$/')
+    expect($token['token'])->toMatch('/^app_live_[a-z0-9]{32}$/')
         ->and($token['prefix'])->toContain('••••')
-        ->and(TokenFormatter::parse($token['secret']))->not->toBeNull();
+        ->and(TokenFormatter::parse($token['token']))->not->toBeNull();
 });
 
 test('create api key stores a hashed secret and returns the plaintext once', function () {

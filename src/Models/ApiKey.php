@@ -44,7 +44,7 @@ class ApiKey extends Model implements TokenPermissionResolver
         return $this->expires_at !== null && $this->expires_at->isPast();
     }
 
-    public function allows(string $permission): bool
+    public function allows(string $permission, mixed $scope = null): bool
     {
         $resolver = config('api-keys.scope_permissions');
 

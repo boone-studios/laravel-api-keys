@@ -2,6 +2,7 @@
 
 namespace BooneStudios\ApiKeys\Services;
 
+use BooneStudios\ApiKeys\Exceptions\InvalidEnvironmentException;
 use BooneStudios\ApiKeys\Support\TokenFormatter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
@@ -25,19 +26,25 @@ class CreateApiKey
         $tenantKey = (string) config('api-keys.tenant_foreign_key', 'tenant_id');
         $environment = app($this->environmentResolverClass())->environmentFromPrefix($environmentPrefix);
 
+        $maxLength = (int) config('api-keys.environment_max_length', 16);
+
+        if (strlen($environment) > $maxLength) {
+            throw InvalidEnvironmentException::tooLong($environment, $maxLength);
+        }
+
         $apiKey = $modelClass::query()->create([
             $tenantKey => $tenant->getKey(),
             'name' => $name,
             'environment' => $environment,
             'prefix' => $token['prefix'],
-            'key_hash' => Hash::make($token['secret']),
+            'key_hash' => Hash::make($token['token']),
             'scopes' => array_values(array_unique($scopes)),
             'expires_at' => $expiresAt,
         ]);
 
         return [
             'api_key' => $apiKey,
-            'secret' => $token['secret'],
+            'secret' => $token['token'],
         ];
     }
 

@@ -8,7 +8,7 @@ use InvalidArgumentException;
 class TokenFormatter
 {
     /**
-     * @return array{environment_prefix: string, secret: string}|null
+     * @return array{environment_prefix: string, suffix: string}|null
      */
     public static function parse(?string $token): ?array
     {
@@ -24,12 +24,13 @@ class TokenFormatter
 
         return [
             'environment_prefix' => $matches[1],
-            'secret' => $matches[2],
+            // The random suffix portion of the token (not the full secret).
+            'suffix' => $matches[2],
         ];
     }
 
     /**
-     * @return array{secret: string, prefix: string, environment_prefix: string}
+     * @return array{token: string, prefix: string, environment_prefix: string}
      */
     public static function generate(string $environmentPrefix): array
     {
@@ -38,11 +39,12 @@ class TokenFormatter
         $mask = (string) config('api-keys.token.mask', '••••');
 
         $suffix = Str::lower(Str::random($length));
-        $secret = "{$brand}_{$environmentPrefix}_{$suffix}";
+        $token = "{$brand}_{$environmentPrefix}_{$suffix}";
         $prefix = "{$brand}_{$environmentPrefix}_{$mask}".substr($suffix, -4);
 
         return [
-            'secret' => $secret,
+            // The full, plaintext secret token (only ever shown to the caller once).
+            'token' => $token,
             'prefix' => $prefix,
             'environment_prefix' => $environmentPrefix,
         ];
@@ -59,6 +61,6 @@ class TokenFormatter
         $brand = (string) config('api-keys.token.brand', 'app');
         $mask = (string) config('api-keys.token.mask', '••••');
 
-        return "{$brand}_{$parsed['environment_prefix']}_{$mask}".substr($parsed['secret'], -4);
+        return "{$brand}_{$parsed['environment_prefix']}_{$mask}".substr($parsed['suffix'], -4);
     }
 }

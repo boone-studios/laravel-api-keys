@@ -30,10 +30,14 @@ class Authenticator
             ->with($tenantRelation)
             ->get()
             ->first(function (Model $apiKey) use ($token): bool {
-                if (method_exists($apiKey, 'isExpired') && $apiKey->isExpired()) {
+                if ($apiKey->isExpired()) {
                     return false;
                 }
 
+                // We must Hash::check() each row individually rather than doing a single
+                // indexed lookup: bcrypt salts each hash uniquely, so there is no way to
+                // derive an index from the salted digest. Looping per-candidate here also
+                // keeps the comparison timing-safe (Hash::check() is constant-time).
                 return Hash::check($token, (string) $apiKey->key_hash);
             });
     }

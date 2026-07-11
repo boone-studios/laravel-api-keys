@@ -6,6 +6,7 @@ use BooneStudios\ApiKeys\Contracts\GuardsAuthenticatedTenant;
 use BooneStudios\ApiKeys\Services\Authenticator;
 use BooneStudios\ScopedRoles\Contracts\TokenPermissionResolver;
 use Closure;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use RuntimeException;
@@ -42,11 +43,29 @@ class AuthenticateApiKey
 
         $this->bindAuthenticatedContext($apiKey, $tenant);
 
-        if (config('api-keys.track_last_used', true)) {
+        if (config('api-keys.track_last_used', true) && $this->shouldUpdateLastUsedAt($apiKey)) {
             $apiKey->forceFill(['last_used_at' => now()])->save();
         }
 
         return $next($request);
+    }
+
+    /**
+     * Debounce last_used_at writes so we don't hit the database on every
+     * single authenticated request. Only write when the timestamp is
+     * missing or older than the configured throttle threshold.
+     */
+    protected function shouldUpdateLastUsedAt(Model $apiKey): bool
+    {
+        $lastUsedAt = $apiKey->last_used_at;
+
+        if (! $lastUsedAt instanceof DateTimeInterface) {
+            return true;
+        }
+
+        $throttleSeconds = (int) config('api-keys.last_used_at_throttle_seconds', 60);
+
+        return $lastUsedAt->diffInSeconds(now(), true) >= $throttleSeconds;
     }
 
     protected function resolveTenant(Model $apiKey): ?object

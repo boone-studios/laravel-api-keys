@@ -6,6 +6,13 @@ use InvalidArgumentException;
 
 class InvalidEnvironmentException extends InvalidArgumentException
 {
+    /**
+     * Build the exception for an environment value that exceeds the column length.
+     *
+     * @param  string  $environment
+     * @param  int  $maxLength
+     * @return self
+     */
     public static function tooLong(string $environment, int $maxLength): self
     {
         return new self(sprintf(

@@ -11,7 +11,45 @@ use RuntimeException;
 class CreateApiKey
 {
     /**
+     * Resolve the configured environment resolver class name.
+     *
+     * @return class-string
+     */
+    protected function environmentResolverClass(): string
+    {
+        $resolver = config('api-keys.environment_resolver');
+
+        if (! is_string($resolver) || $resolver === '') {
+            throw new RuntimeException('api-keys.environment_resolver is not configured.');
+        }
+
+        return $resolver;
+    }
+
+    /**
+     * Resolve the configured API key model class name.
+     *
+     * @return class-string<Model>
+     */
+    protected function modelClass(): string
+    {
+        $model = config('api-keys.model');
+
+        if (! is_string($model) || $model === '') {
+            throw new RuntimeException('api-keys.model is not configured.');
+        }
+
+        return $model;
+    }
+
+    /**
+     * Generate a new API key secret and persist its record for the given tenant.
+     *
+     * @param  Model  $tenant
+     * @param  string  $name
+     * @param  string  $environmentPrefix
      * @param  list<string>  $scopes
+     * @param  \DateTimeInterface|null  $expiresAt
      * @return array{api_key: Model, secret: string}
      */
     public function create(
@@ -33,46 +71,18 @@ class CreateApiKey
         }
 
         $apiKey = $modelClass::query()->create([
-            $tenantKey => $tenant->getKey(),
-            'name' => $name,
+            $tenantKey    => $tenant->getKey(),
+            'name'        => $name,
             'environment' => $environment,
-            'prefix' => $token['prefix'],
-            'key_hash' => Hash::make($token['token']),
-            'scopes' => array_values(array_unique($scopes)),
-            'expires_at' => $expiresAt,
+            'prefix'      => $token['prefix'],
+            'key_hash'    => Hash::make($token['token']),
+            'scopes'      => array_values(array_unique($scopes)),
+            'expires_at'  => $expiresAt,
         ]);
 
         return [
             'api_key' => $apiKey,
-            'secret' => $token['token'],
+            'secret'  => $token['token'],
         ];
-    }
-
-    /**
-     * @return class-string<Model>
-     */
-    protected function modelClass(): string
-    {
-        $model = config('api-keys.model');
-
-        if (! is_string($model) || $model === '') {
-            throw new RuntimeException('api-keys.model is not configured.');
-        }
-
-        return $model;
-    }
-
-    /**
-     * @return class-string
-     */
-    protected function environmentResolverClass(): string
-    {
-        $resolver = config('api-keys.environment_resolver');
-
-        if (! is_string($resolver) || $resolver === '') {
-            throw new RuntimeException('api-keys.environment_resolver is not configured.');
-        }
-
-        return $resolver;
     }
 }

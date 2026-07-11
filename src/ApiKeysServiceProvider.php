@@ -10,14 +10,11 @@ use Illuminate\Support\ServiceProvider;
 
 class ApiKeysServiceProvider extends ServiceProvider
 {
-    public function register(): void
-    {
-        $this->mergeConfigFrom(__DIR__.'/../config/api-keys.php', 'api-keys');
-
-        $this->app->singleton(Authenticator::class);
-        $this->app->singleton(CreateApiKey::class);
-    }
-
+    /**
+     * Bootstrap the package's publishable assets and middleware alias.
+     *
+     * @return void
+     */
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
@@ -34,5 +31,18 @@ class ApiKeysServiceProvider extends ServiceProvider
             'auth.api_key',
             AuthenticateApiKey::class,
         );
+    }
+
+    /**
+     * Register the package's config and singleton services.
+     *
+     * @return void
+     */
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/api-keys.php', 'api-keys');
+
+        $this->app->singleton(Authenticator::class);
+        $this->app->singleton(CreateApiKey::class);
     }
 }

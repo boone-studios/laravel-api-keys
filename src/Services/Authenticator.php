@@ -10,6 +10,50 @@ use RuntimeException;
 
 class Authenticator
 {
+    /**
+     * Resolve the environment resolver configured for the application.
+     *
+     * @return ResolvesEnvironmentFromTokenPrefix
+     */
+    protected function environmentResolver(): ResolvesEnvironmentFromTokenPrefix
+    {
+        $resolver = config('api-keys.environment_resolver');
+
+        if (! is_string($resolver) || $resolver === '') {
+            throw new RuntimeException('api-keys.environment_resolver is not configured.');
+        }
+
+        $instance = app($resolver);
+
+        if (! $instance instanceof ResolvesEnvironmentFromTokenPrefix) {
+            throw new RuntimeException('api-keys.environment_resolver must implement ResolvesEnvironmentFromTokenPrefix.');
+        }
+
+        return $instance;
+    }
+
+    /**
+     * Resolve the configured API key model class name.
+     *
+     * @return class-string<Model>
+     */
+    protected function modelClass(): string
+    {
+        $model = config('api-keys.model');
+
+        if (! is_string($model) || $model === '') {
+            throw new RuntimeException('api-keys.model is not configured.');
+        }
+
+        return $model;
+    }
+
+    /**
+     * Resolve the API key model matching the given bearer token, if any.
+     *
+     * @param  string|null  $token
+     * @return Model|null
+     */
     public function authenticate(?string $token): ?Model
     {
         $parsed = TokenFormatter::parse($token);
@@ -34,42 +78,9 @@ class Authenticator
                     return false;
                 }
 
-                // We must Hash::check() each row individually rather than doing a single
-                // indexed lookup: bcrypt salts each hash uniquely, so there is no way to
-                // derive an index from the salted digest. Looping per-candidate here also
-                // keeps the comparison timing-safe (Hash::check() is constant-time).
+                // Bcrypt salts every row differently so there's no indexed shortcut
+                // Each candidate gets checked constant-time
                 return Hash::check($token, (string) $apiKey->key_hash);
             });
-    }
-
-    /**
-     * @return class-string<Model>
-     */
-    protected function modelClass(): string
-    {
-        $model = config('api-keys.model');
-
-        if (! is_string($model) || $model === '') {
-            throw new RuntimeException('api-keys.model is not configured.');
-        }
-
-        return $model;
-    }
-
-    protected function environmentResolver(): ResolvesEnvironmentFromTokenPrefix
-    {
-        $resolver = config('api-keys.environment_resolver');
-
-        if (! is_string($resolver) || $resolver === '') {
-            throw new RuntimeException('api-keys.environment_resolver is not configured.');
-        }
-
-        $instance = app($resolver);
-
-        if (! $instance instanceof ResolvesEnvironmentFromTokenPrefix) {
-            throw new RuntimeException('api-keys.environment_resolver must implement ResolvesEnvironmentFromTokenPrefix.');
-        }
-
-        return $instance;
     }
 }

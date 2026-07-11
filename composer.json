@@ -12,7 +12,7 @@
     ],
     "require": {
         "php": "^8.2",
-        "boone-studios/laravel-scoped-roles": "@dev",
+        "boone-studios/laravel-scoped-roles": "^0.1",
         "illuminate/database": "^12.0|^13.0",
         "illuminate/http": "^12.0|^13.0",
         "illuminate/support": "^12.0|^13.0"
@@ -39,17 +39,6 @@
             ]
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../scoped-roles",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "config": {
         "sort-packages": true,
         "allow-plugins": {
